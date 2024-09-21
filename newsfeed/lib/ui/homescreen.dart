@@ -1,15 +1,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:newsfeed/models/thewallstreetjournalmodel.dart';
+import 'package:newsfeed/provider/favprovider.dart';
 import 'package:newsfeed/services/the-wall-street-journal-services.dart';
+import 'package:newsfeed/ui/content.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key});
 
 
 
-  final String title;
+  
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -25,7 +28,8 @@ class _MyHomePageState extends State<MyHomePage> {
     bool isnews=true;
     bool isfav=false;
     List<int> favindex=[];
-      List<int> favindex1=[];
+    List<Article> favarticl=[];
+  
 
 @override
   void initState() {
@@ -36,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+         final numberListProvider = Provider.of<favListProvider>(context);
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 218, 237, 241).withOpacity(0.95),
       appBar: AppBar(
@@ -121,11 +126,11 @@ class _MyHomePageState extends State<MyHomePage> {
               final article = articles[index];
               return cards(article,index);
             },
-          ):!favindex.isEmpty? ListView.builder(
-            itemCount: favindex.length,
-            itemBuilder: (context,favindex ) {
-              final article = articles[favindex];
-              return cards(article,favindex);
+          ):!numberListProvider.favarticl.isEmpty? ListView.builder(
+            itemCount: numberListProvider.favarticl.length,
+            itemBuilder: (context,index1) {
+              final article = numberListProvider.favarticl[index1];
+              return cards(article,index1);
             },
           ):Center(child: Text('You dont have any Favorite News',style: TextStyle(color: Colors.blueAccent),));
         },
@@ -134,10 +139,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
 cards(article, index) {
-
+     final favrListProvider = Provider.of<favListProvider>(context);
   return GestureDetector(
-    onDoubleTap: () {
-      print('Double tap detected');
+    onTap: () {
+    Navigator.push(
+  context,
+  MaterialPageRoute(builder: (context) => Content(context,article,favarticl)),
+);
+     
     },
     onLongPress: () {
       setState(() {
@@ -244,7 +253,10 @@ cards(article, index) {
                         // Add to favorite functionality
                         print('Added to favorites');
                          setState(() {
-                      favindex.contains(selectedArticleIndex)? favindex.remove(selectedArticleIndex): favindex.add(selectedArticleIndex!);
+                          favrListProvider.favarticl.contains(article)? favrListProvider.removefavarticl(article):favrListProvider.addfavarticl(article);
+                            
+                         // favarticl.contains(article)?favarticl.remove(article):favarticl.add(article);
+                     // favindex.contains(selectedArticleIndex)? favindex.remove(selectedArticleIndex): favindex.add(selectedArticleIndex!);
                         
                         });
                       },
@@ -260,7 +272,9 @@ cards(article, index) {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.favorite, color:favindex.contains(selectedArticleIndex)? Colors.red:Colors.white,size: 25,),
+
+                       Icon(Icons.favorite, color: favrListProvider.favarticl.contains(article)? Colors.red:Colors.white,size: 25,),
+                       
                       
                         Center(
                           child: Text(!isfav?
@@ -293,6 +307,8 @@ cards(article, index) {
      showAddToFavorites = !showAddToFavorites;
     });
   }
+ 
    
       }
+      
          
